@@ -25,6 +25,16 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/MIFAMA/service-worker.js');
     }
+    <body style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; font-family:Arial;">
+  <h1>Escanea para abrir Berbería MIFAMA</h1>
+  <canvas id="qrcode"></canvas>
+  <p>O visita: <a href="https://fabianti1506.github.io/MIFAMA/" target="_blank">Abrir App</a></p>
+  <script>
+    QRCode.toCanvas(document.getElementById('qrcode'), "https://fabianti1506.github.io/MIFAMA/", function (error) {
+      if (error) console.error(error)
+    })
+  </script>
+</body>
   </script>
 </body>
 </html>
