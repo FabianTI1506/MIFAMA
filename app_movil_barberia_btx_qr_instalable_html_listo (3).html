@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Barbería BTX — PWA</title>
+  <meta name="description" content="App PWA para Barbería BTX — instalar vía QR. Registro, login, agendar cita (año, fecha, hora), ubicación Turbaco, Bolívar." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><text y='0.9em' font-size='180'>💈</text></svg>">
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- QRCode generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- PWA manifest (creado dinámicamente por JS; también puedes crear manifest.json con el mismo contenido) -->
+  <meta name="theme-color" content="#0f172a">
+  <style>body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}</style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900">
+  <div class="max-w-md mx-auto p-4 sm:p-6">
+    <header class="text-center mb-4">
+      <div class="inline-block p-3 bg-white rounded-2xl shadow"><span class="text-4xl">💈</span></div>
+      <h1 class="text-2xl font-extrabold mt-3">Barbería BTX</h1>
+      <p class="text-sm text-slate-500">Turbaco, Bolívar</p>
+    </header>
+
+    <main id="appRoot" class="bg-white rounded-2xl shadow p-4 sm:p-6 space-y-4">
+      <!-- Login -->
+      <section id="loginView">
+        <h2 class="text-lg font-semibold">Iniciar sesión</h2>
+        <div class="mt-3 space-y-3">
+          <input id="loginEmail" type="email" placeholder="Correo electrónico" class="w-full rounded-xl border p-2" />
+          <input id="loginPass" type="password" placeholder="Contraseña" class="w-full rounded-xl border p-2" />
+          <div class="flex gap-2">
+            <button id="btnLogin" class="flex-1 py-2 rounded-xl bg-slate-900 text-white">Entrar</button>
+            <button id="btnToRegister" class="flex-1 py-2 rounded-xl bg-slate-200">Registrarme</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Register (hidden initially) -->
+      <section id="registerView" class="hidden">
+        <h2 class="text-lg font-semibold">Registrar nuevo usuario</h2>
+        <div class="mt-3 space-y-3">
+          <input id="regNombre" type="text" placeholder="Nombre completo" class="w-full rounded-xl border p-2" />
+          <input id="regTel" type="tel" placeholder="Teléfono" class="w-full rounded-xl border p-2" />
+          <input id="regCorreo" type="email" placeholder="Correo electrónico" class="w-full rounded-xl border p-2" />
+          <input id="regPass" type="password" placeholder="Contraseña" class="w-full rounded-xl border p-2" />
+          <div class="flex gap-2">
+            <button id="btnRegister" class="flex-1 py-2 rounded-xl bg-slate-900 text-white">Registrar</button>
+            <button id="btnToLogin" class="flex-1 py-2 rounded-xl bg-slate-200">Volver</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main menu (after login) -->
+      <section id="mainView" class="hidden">
+        <h2 class="text-lg font-semibold">Menú principal</h2>
+        <div class="mt-3 grid gap-3">
+          <button id="btnAgendar" class="py-3 rounded-2xl bg-slate-800 text-white">Agendar cita</button>
+          <button id="btnEnlace" class="py-3 rounded-2xl bg-slate-700 text-white">Enlace Barbería BTX</button>
+          <button id="btnUbicacion" class="py-3 rounded-2xl bg-slate-600 text-white">Ver ubicación</button>
+          <button id="btnCerrar" class="py-3 rounded-2xl bg-red-600 text-white">Cerrar sesión</button>
+        </div>
+
+        <div class="pt-4">
+          <h3 class="font-semibold">Próximas citas</h3>
+          <ul id="listaCitas" class="mt-2 space-y-2 text-sm text-slate-700"></ul>
+        </div>
+      </section>
+
+      <!-- Agendar cita modal -->
+      <div id="agendarView" class="hidden">
+        <h2 class="text-lg font-semibold">Agendar cita</h2>
+        <div class="mt-3 space-y-3">
+          <input id="citaNombre" type="text" placeholder="Nombre (autocompletado)" class="w-full rounded-xl border p-2" />
+          <select id="citaServicio" class="w-full rounded-xl border p-2">
+            <option>Corte</option>
+            <option>Barba</option>
+            <option>Corte + Barba</option>
+            <option>Tinte</option>
+          </select>
+          <label class="block text-sm">Año</label>
+          <input id="citaYear" type="number" min="2025" max="2035" class="w-full rounded-xl border p-2" />
+          <label class="block text-sm">Fecha</label>
+          <input id="citaFecha" type="date" class="w-full rounded-xl border p-2" />
+          <label class="block text-sm">Hora</label>
+          <input id="citaHora" type="time" class="w-full rounded-xl border p-2" />
+          <div class="flex gap-2 mt-2">
+            <button id="btnConfirmarCita" class="flex-1 py-2 rounded-xl bg-slate-900 text-white">Confirmar</button>
+            <button id="btnCancelCita" class="flex-1 py-2 rounded-xl bg-slate-200">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ubicación view -->
+      <section id="ubicacionView" class="hidden">
+        <h2 class="text-lg font-semibold">Ubicación — Turbaco, Bolívar</h2>
+        <p class="text-sm text-slate-600">Dirección: Turbaco, Bolívar</p>
+        <div class="mt-3 rounded-xl overflow-hidden border">
+          <iframe title="Mapa Turbaco" class="w-full h-56" loading="lazy" allowfullscreen
+            src="https://www.google.com/maps?q=Turbaco%2C%20Bol%C3%ADvar%2C%20Colombia&output=embed"></iframe>
+        </div>
+        <div class="mt-2">
+          <a id="btnComoLlegar" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=Turbaco%2C%20Bol%C3%ADvar%2C%20Colombia" class="px-4 py-2 rounded-xl bg-slate-900 text-white inline-block">Cómo llegar</a>
+        </div>
+      </section>
+
+      <!-- QR + link area (visible siempre) -->
+      <section class="pt-3 border-t mt-4 pt-4">
+        <h3 class="font-semibold">Instalar / Compartir</h3>
+        <p class="text-sm text-slate-600">Escanea este QR para abrir la app (cuando subas el archivo a una URL pública):</p>
+        <div id="qr" class="mt-3 flex justify-center"></div>
+        <div class="mt-2 text-center"><a id="appLink" class="text-xs underline break-all"></a></div>
+        <div class="mt-3 text-xs text-slate-500">Tip: en Android puedes "Agregar a la pantalla de inicio" para instalar como PWA.</div>
+      </section>
+
+    </main>
+
+    <footer class="text-center text-xs text-slate-500 mt-4">© <span id="yearFooter"></span> Barbería BTX — Turbaco, Bolívar</footer>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-xl text-sm"></div>
+
+  <script>
+    // ---------- Utilidades ----------
+    function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(window.__t);window.__t=setTimeout(()=>t.classList.add('hidden'),2200);}    
+    document.getElementById('yearFooter').textContent = new Date().getFullYear();
+
+    // Views
+    const loginView = document.getElementById('loginView');
+    const registerView = document.getElementById('registerView');
+    const mainView = document.getElementById('mainView');
+    const agendarView = document.getElementById('agendarView');
+    const ubicacionView = document.getElementById('ubicacionView');
+
+    // Auth (localStorage simple) ----------------
+    function getUsers(){return JSON.parse(localStorage.getItem('btx_users')||'[]');}
+    function saveUsers(u){localStorage.setItem('btx_users', JSON.stringify(u));}
+    function getSession(){return JSON.parse(localStorage.getItem('btx_session')||'null');}
+    function saveSession(s){localStorage.setItem('btx_session', JSON.stringify(s));}
+    function clearSession(){localStorage.removeItem('btx_session');}
+
+    // UI buttons
+    document.getElementById('btnToRegister').addEventListener('click', ()=>{loginView.classList.add('hidden'); registerView.classList.remove('hidden');});
+    document.getElementById('btnToLogin').addEventListener('click', ()=>{registerView.classList.add('hidden'); loginView.classList.remove('hidden');});
+
+    document.getElementById('btnRegister').addEventListener('click', ()=>{
+      const nombre = document.getElementById('regNombre').value.trim();
+      const tel = document.getElementById('regTel').value.trim();
+      const correo = document.getElementById('regCorreo').value.trim();
+      const pass = document.getElementById('regPass').value;
+      if(!nombre||!tel||!correo||!pass){toast('Completa todos los campos');return}
+      const users = getUsers();
+      if(users.some(u=>u.correo===correo)){toast('Ya existe una cuenta con ese correo');return}
+      users.push({id:Date.now()+'' , nombre, tel, correo, pass});
+      saveUsers(users);
+      toast('Cuenta creada. Inicia sesión.');
+      registerView.classList.add('hidden'); loginView.classList.remove('hidden');
+      ['regNombre','regTel','regCorreo','regPass'].forEach(id=>document.getElementById(id).value='');
+    });
+
+    document.getElementById('btnLogin').addEventListener('click', ()=>{
+      const correo = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPass').value;
+      const users = getUsers();
+      const u = users.find(x=>x.correo===correo && x.pass===pass);
+      if(!u){toast('Credenciales incorrectas');return}
+      saveSession({id:u.id,nombre:u.nombre,correo:u.correo});
+      toast('Bienvenido '+u.nombre);
+      showMain();
+    });
+
+    document.getElementById('btnCerrar').addEventListener('click', ()=>{clearSession(); showLogin(); toast('Sesión cerrada');});
+
+    // Main actions
+    document.getElementById('btnAgendar').addEventListener('click', ()=>{loginCheck(()=>{showAgendar();});});
+    document.getElementById('btnEnlace').addEventListener('click', ()=>{window.open('https://www.facebook.com/BarberiaBTX','_blank');});
+    document.getElementById('btnUbicacion').addEventListener('click', ()=>{showUbicacion();});
+
+    // Agendar
+    function getCitas(){return JSON.parse(localStorage.getItem('btx_citas')||'[]');}
+    function saveCitas(c){localStorage.setItem('btx_citas', JSON.stringify(c));}
+
+    document.getElementById('btnConfirmarCita').addEventListener('click', ()=>{
+      const nombre = document.getElementById('citaNombre').value.trim();
+      const servicio = document.getElementById('citaServicio').value;
+      const year = document.getElementById('citaYear').value;
+      const fecha = document.getElementById('citaFecha').value;
+      const hora = document.getElementById('citaHora').value;
+      if(!nombre||!year||!fecha||!hora){toast('Completa año, fecha y hora');return}
+      // Validar año concuerde con fecha
+      const fechaISO = fecha + 'T' + hora;
+      const dt = new Date(fechaISO);
+      if(isNaN(dt.getTime())){toast('Fecha u hora inválida');return}
+      if(dt.getFullYear() != Number(year)){toast('El año no coincide con la fecha seleccionada');return}
+      if(dt.getTime() < Date.now()-60000){toast('No puedes agendar en el pasado');return}
+      const citas = getCitas();
+      const sid = Date.now() + '_' + Math.random().toString(36).slice(2,8);
+      citas.push({id:sid,nombre,servicio,year,fecha,hora});
+      saveCitas(citas);
+      toast('Cita agendada');
+      showMain();
+      renderCitas();
+    });
+    document.getElementById('btnCancelCita').addEventListener('click', ()=>{showMain();});
+
+    // Render citas en el main
+    function renderCitas(){
+      const lista = document.getElementById('listaCitas'); lista.innerHTML='';
+      const citas = getCitas().sort((a,b)=> new Date(a.fecha+'T'+a.hora)-new Date(b.fecha+'T'+b.hora));
+      if(!citas.length){lista.innerHTML='<li class="text-slate-500">Sin citas</li>'; return}
+      for(const c of citas){
+        const li = document.createElement('li'); li.className='p-3 rounded-xl bg-slate-50 border flex items-center justify-between';
+        li.innerHTML = `<div><div class="font-medium">${c.nombre} — ${c.servicio}</div><div class="text-xs text-slate-500">${c.fecha} • ${c.hora}</div></div><button class="text-xs underline">Cancelar</button>`;
+        li.querySelector('button').addEventListener('click', ()=>{ if(confirm('Cancelar esta cita?')){ const rest = getCitas().filter(x=>x.id!==c.id); saveCitas(rest); renderCitas(); toast('Cita cancelada'); }});
+        lista.appendChild(li);
+      }
+    }
+
+    // Show helpers
+    function showLogin(){loginView.classList.remove('hidden'); registerView.classList.add('hidden'); mainView.classList.add('hidden'); agendarView.classList.add('hidden'); ubicacionView.classList.add('hidden');}
+    function showMain(){loginView.classList.add('hidden'); registerView.classList.add('hidden'); mainView.classList.remove('hidden'); agendarView.classList.add('hidden'); ubicacionView.classList.add('hidden'); renderCitas();}
+    function showAgendar(){loginView.classList.add('hidden'); registerView.classList.add('hidden'); mainView.classList.add('hidden'); agendarView.classList.remove('hidden'); ubicacionView.classList.add('hidden'); const s = getSession(); document.getElementById('citaNombre').value = s? s.nombre : ''; document.getElementById('citaYear').value = new Date().getFullYear();}
+    function showUbicacion(){loginView.classList.add('hidden'); registerView.classList.add('hidden'); mainView.classList.add('hidden'); agendarView.classList.add('hidden'); ubicacionView.classList.remove('hidden');}
+    function loginCheck(cb){ if(getSession()){cb();} else {toast('Inicia sesión para continuar'); setTimeout(()=>{loginView.classList.remove('hidden'); registerView.classList.add('hidden'); mainView.classList.add('hidden');},300)} }
+
+    // Auto-login if session exists
+    if(getSession()){ showMain(); } else { showLogin(); }
+
+    // Inicial render citas
+    renderCitas();
+
+    // ---------- QR generation ----------
+    const linkEl = document.getElementById('appLink');
+    // Use current location as share link — when subas a hosting, el QR apuntará a esa URL.
+    const appUrl = window.location.href;
+    linkEl.textContent = appUrl;
+    linkEl.href = appUrl;
+    new QRCode(document.getElementById('qr'), {text:appUrl,width:180,height:180,correctLevel:QRCode.CorrectLevel.M});
+
+    // ---------- PWA: manifest + service worker instructions ----------
+    // We create a manifest blob so the app is installable as PWA without extra files (works on many static hosts).
+    const manifest = {
+      name: 'Barbería BTX',
+      short_name: 'BTX',
+      start_url: './',
+      display: 'standalone',
+      background_color: '#0f172a',
+      theme_color: '#0f172a',
+      icons: [
+        {src: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 256 256%22%3E%3Ctext y=%220.9em%22 font-size=%22180%22%3E%F0%9F%92%88%3C/text%3E%3C/svg%3E', sizes:'192x192', type:'image/svg+xml'},
+        {src: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 256 256%22%3E%3Ctext y=%220.9em%22 font-size=%22180%22%3E%F0%9F%92%88%3C/text%3E%3C/svg%3E', sizes:'512x512', type:'image/svg+xml'}
+      ]
+    };
+    const manifestBlob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+    const manifestURL = URL.createObjectURL(manifestBlob);
+    const link = document.createElement('link'); link.rel='manifest'; link.href = manifestURL; document.head.appendChild(link);
+
+    // Register a very small service worker (optional but recommended). NOTE: for full offline capabilities, save the file service-worker.js on your host with the content below.
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('service-worker.js').then(()=>{console.log('Service worker registrado');}).catch((err)=>{console.log('No se registró SW local — revisa service-worker.js',err)});
+    }
+
+    // ---------- PWA install prompt handling ----------
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt = e; // show custom install button
+      const btn = document.createElement('button'); btn.textContent='Instalar BTX'; btn.className='mt-3 px-3 py-2 rounded-xl bg-amber-500'; document.querySelector('main').appendChild(btn);
+      btn.addEventListener('click', async ()=>{ deferredPrompt.prompt(); const choice=await deferredPrompt.userChoice; if(choice.outcome==='accepted'){toast('App instalada');} deferredPrompt = null; btn.remove(); });
+    });
+
+  </script>
+
+  <!-- ====== Service worker example (save this file as service-worker.js in the same folder when publiques) ======
+       ---- service-worker.js content (copy & save as separate file) ----
+
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open('btx-v1').then(cache => cache.addAll(['./','./index.html'])));
+});
+self.addEventListener('fetch', event => {
+  event.respondWith(caches.match(event.request).then(resp => resp || fetch(event.request)));
+});
+
+  ===================================================================================== -->
+
+  <!-- ====== Instrucciones para generar APK (opciones) ======
+  1) Opción rápida: PWABuilder (https://www.pwabuilder.com)
+     - Sube tu URL (donde publiques este index.html) a PWABuilder.
+     - PWABuilder generará paquetes Android (.apk/.aab) o instrucciones para publicar en Play Store.
+
+  2) Opción con Capacitor (más control):
+     - Instala Node.js y npm.
+     - Crea un repo con estos archivos (index.html, service-worker.js). Luego desde la línea:
+        npm init @capacitor/app
+        npm install @capacitor/android
+        npx cap add android
+        npx cap copy android
+        npx cap open android
+     - En Android Studio compila el APK (Build > Build Bundle(s) / APK(s) > Build APK).
+
+  3) Opción TWA (Trusted Web Activity) — para publicar la PWA como app si ya tienes hosting y dominio.
+
+  NOTAS:
+   - Para que la PWA sea "instalable" como APK vía PWABuilder/Capacitor, debes publicar tu PWA en una URL HTTPS (ej. GitHub Pages, Netlify, Vercel).
+   - Asegúrate de subir también el archivo service-worker.js tal como se muestra arriba.
+
+  ======= Fin de instrucciones ======= -->
+
+</body>
+</html>
