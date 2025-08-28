@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi App Web</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      color: white;
+      text-align: center;
+      padding: 50px;
+    }
+    .card {
+      background: rgba(0,0,0,0.3);
+      border-radius: 15px;
+      padding: 20px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    button {
+      background: #fff;
+      color: #333;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🌟 Bienvenido a mi App Web</h1>
+    <p>Esto es un ejemplo de aplicación web ligera.</p>
+    <button onclick="saludar()">Haz clic aquí</button>
+    <p id="mensaje"></p>
+  </div>
+
+  <script>
+    function saludar() {
+      document.getElementById('mensaje').innerText = "👋 ¡Hola! Gracias por usar la app.";
+    }
+  </script>
+</body>
+</html>
