@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>QR Berbería MIFAMA</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+</head>
+<body style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; font-family:Arial;">
+  <h1>Escanea para abrir Berbería MIFAMA</h1>
+  <canvas id="qrcode"></canvas>
+  <p>O visita: <a href="https://fabianti1506.github.io/MIFAMA/" target="_blank">Abrir App</a></p>
+  <script>
+    QRCode.toCanvas(document.getElementById('qrcode'), "https://fabianti1506.github.io/MIFAMA/", function (error) {
+      if (error) console.error(error)
+    })
+  </script>
+</body>
+</html>

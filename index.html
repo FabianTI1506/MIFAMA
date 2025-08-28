@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Berbería MIFAMA</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="logo.png" type="image/png" />
+  <meta name="theme-color" content="#0d47a1" />
+</head>
+<body style="font-family: Arial; margin:0; padding:0; background:#f9f9f9; text-align:center;">
+  <header style="background:#0d47a1; color:white; padding:20px;">
+    <img src="logo.png" alt="Logo Berbería MIFAMA" style="width:100px;"/>
+    <h1>Bienvenido a Berbería MIFAMA</h1>
+    <p>Tu estilo, nuestra pasión</p>
+  </header>
+  <main style="padding:20px;">
+    <h2>Servicios de barbería y estilo masculino</h2>
+    <p>Reserva tu turno y vive la experiencia MIFAMA.</p>
+  </main>
+  <footer style="background:#d32f2f; color:white; padding:10px;">
+    © 2025 Berbería MIFAMA
+  </footer>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/MIFAMA/service-worker.js');
+    }
+  </script>
+</body>
+</html>
